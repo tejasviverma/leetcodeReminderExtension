@@ -8,7 +8,13 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icon.png"
+     "default_popup": "popup.html",
+  "default_icon": "icon.png"
+  },
+  "web_accessible_resources": [
+  {
+    "resources": ["sound.mp3"],
+    "matches": ["<all_urls>"]
   }
+]
 }

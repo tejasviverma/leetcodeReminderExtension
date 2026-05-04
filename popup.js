@@ -1,33 +1,41 @@
-const openBtn = document.getElementById("openLeetCode");
-const doneBtn = document.getElementById("markDone");
-const streakText = document.getElementById("streak");
+const setBtn = document.getElementById("setReminder");
+const timeInput = document.getElementById("reminderTime");
 
-// Open LeetCode
-openBtn.addEventListener("click", () => {
-    chrome.tabs.create({ url: "https://leetcode.com" });
+// Save time + create alarm
+setBtn.addEventListener("click", () => {
+    const time = timeInput.value;
+
+    chrome.storage.local.set({ reminderTime: time });
+
+    createDailyAlarm(time);
 });
 
-// Load streak
-chrome.storage.local.get(["streak", "lastDone"], (data) => {
-    streakText.innerText = `Streak: ${data.streak || 0}`;
-});
+// Snooze buttons
+document.querySelectorAll(".snooze").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const mins = parseInt(btn.dataset.time);
 
-// Mark as done
-doneBtn.addEventListener("click", () => {
-    const today = new Date().toDateString();
-
-    chrome.storage.local.get(["streak", "lastDone"], (data) => {
-        let streak = data.streak || 0;
-
-        if (data.lastDone !== today) {
-            streak += 1;
-        }
-
-        chrome.storage.local.set({
-            streak: streak,
-            lastDone: today
+        chrome.alarms.create("snoozeAlarm", {
+            delayInMinutes: mins
         });
-
-        streakText.innerText = `Streak: ${streak}`;
     });
 });
+
+// function to create daily alarm
+function createDailyAlarm(time) {
+    const [hours, minutes] = time.split(":").map(Number);
+
+    let now = new Date();
+    let alarmTime = new Date();
+
+    alarmTime.setHours(hours, minutes, 0, 0);
+
+    if (alarmTime < now) {
+        alarmTime.setDate(alarmTime.getDate() + 1);
+    }
+
+    chrome.alarms.create("leetcodeReminder", {
+        when: alarmTime.getTime(),
+        periodInMinutes: 1440
+    });
+}
